@@ -2,7 +2,6 @@ package ru.pvd.counter;
 
 import org.junit.Assert;
 import org.junit.Test;
-import ru.pvd.temp.ThreadFileReaderIpAddressTest;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -12,9 +11,7 @@ import java.util.Objects;
 
 public class IpAddressCounterTest {
 
-    final ClassLoader classLoader = ThreadFileReaderIpAddressTest.class.getClassLoader();
-//    final String file = Objects.requireNonNull(classLoader.getResource("ip_addresses_1_000_err")).getFile();
-    final String file = Objects.requireNonNull(classLoader.getResource("ip_addresses_10_000")).getFile();
+    final ClassLoader classLoader = IpAddressCounterTest.class.getClassLoader();
 
     public static boolean validIP(String ip) {
         try {
@@ -40,7 +37,7 @@ public class IpAddressCounterTest {
         }
     }
 
-    private long getCountUniqueIpAddressByHashMap() {
+    private long getCountUniqueIpAddressByHashMap(String file) {
         Map<String, String> mapIpAddress = new HashMap<>();
         String line;
         try (var raf = new RandomAccessFile(file, "r")) {
@@ -55,7 +52,7 @@ public class IpAddressCounterTest {
         return mapIpAddress.size();
     }
 
-    private long getCountUniqueIpAddressByIpAddressCounter() throws InterruptedException {
+    private long getCountUniqueIpAddressByIpAddressCounter(String file) throws InterruptedException {
         int threadCount = Runtime.getRuntime().availableProcessors();
         var ips = new IpAddressCounter();
         ips.calc(file, threadCount);
@@ -64,8 +61,21 @@ public class IpAddressCounterTest {
 
     @Test
     public void testCalcCountUniqueIpAddress() throws InterruptedException {
-        long countUniqueIpAddressByIpAddressCounter = getCountUniqueIpAddressByIpAddressCounter();
-        long countUniqueIpAddressByHashMap = getCountUniqueIpAddressByHashMap();
+        String testFile = "ip_addresses_10_000";
+        final String file = Objects.requireNonNull(classLoader.getResource(testFile)).getFile();
+
+        long countUniqueIpAddressByIpAddressCounter = getCountUniqueIpAddressByIpAddressCounter(file);
+        long countUniqueIpAddressByHashMap = getCountUniqueIpAddressByHashMap(file);
+        Assert.assertEquals(countUniqueIpAddressByHashMap, countUniqueIpAddressByIpAddressCounter);
+    }
+
+    @Test
+    public void testCalcCountUniqueIpAddressWithInvalidIps() throws InterruptedException {
+        String testFile = "ip_addresses_1_000_err";
+        final String file = Objects.requireNonNull(classLoader.getResource(testFile)).getFile();
+
+        long countUniqueIpAddressByIpAddressCounter = getCountUniqueIpAddressByIpAddressCounter(file);
+        long countUniqueIpAddressByHashMap = getCountUniqueIpAddressByHashMap(file);
         Assert.assertEquals(countUniqueIpAddressByHashMap, countUniqueIpAddressByIpAddressCounter);
     }
 
