@@ -8,12 +8,12 @@ public class IpAddressCounter implements UniqueInetAddressCheck {
 
     // максимальное количество комбинаций IP адресов
     private static final long MAX_COUNT_IP_ADDRESS = 256 * 256 * 256 * 256L;
+
     // количество блоков BitSet для хранения флага встречающихся IP адресов
     private static final byte BITSET_POOL_SIZE = 24;
 
     private final BitSetExtPool bitSetPool;
     private long countUniqueIpAddress = 0;
-
     private long spentTimeMillis = 0;
 
     public IpAddressCounter() {
@@ -24,16 +24,20 @@ public class IpAddressCounter implements UniqueInetAddressCheck {
         long startTime = System.currentTimeMillis();
 
         if (countUniqueIpAddress > 0) {
+            countUniqueIpAddress = 0;
             bitSetPool.clear();
         }
 
         long fileLength = new File(file).length();
-        long partLength = fileLength / threadCount;
+        long partLength = fileLength / threadCount + 1;
 
         ThreadFileReaderIpAddress[] fileReaders = new ThreadFileReaderIpAddress[threadCount];
 
+        long startPos, endPos;
         for (int i = 0; i < fileReaders.length; i++) {
-            fileReaders[i] = new ThreadFileReaderIpAddress(file, i * partLength, partLength, this);
+            startPos = i * partLength;
+            endPos = startPos + partLength;
+            fileReaders[i] = new ThreadFileReaderIpAddress(file, startPos, endPos, this);
             fileReaders[i].start();
         }
 

@@ -26,7 +26,7 @@ public class BitSetExtPool {
         return poolBits[poolIndex].setIfNotEquals(poolBitIndex, value);
     }
 
-    public boolean setBitTrueIfFalse(long bitIndex) {
+    public  boolean setBitTrueIfFalse(long bitIndex) {
         return setBitIfNotEquals(bitIndex, true);
     }
 

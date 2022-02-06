@@ -11,19 +11,17 @@ public class ThreadFileReaderIpAddress extends Thread {
 
     private final String file;
     private final long startPos;
-    private final long length;
+    private final long endPos;
     private final UniqueInetAddressCheck addressCheck;
 
     private long countUniqueIpAddress = 0;
 
-    public ThreadFileReaderIpAddress(String file, long startPos, long length, UniqueInetAddressCheck addressCheck) {
+    public ThreadFileReaderIpAddress(String file, long startPos, long endPos, UniqueInetAddressCheck addressCheck) {
         this.file = file;
         this.startPos = startPos;
 
-        // Прибавляем MAX_LENGTH_IP_ADDRESS,
-        // т.к. будет сдвиг указателя в файле в следующей части,
-        // переданной на обработку в следующий Thread
-        this.length = length + MAX_LENGTH_IP_ADDRESS;
+        // Прибавляем MAX_LENGTH_IP_ADDRESS, т.к. мы сдвигаем startPos на начало следующей строки
+        this.endPos = endPos + MAX_LENGTH_IP_ADDRESS;
 
         this.addressCheck = addressCheck;
     }
@@ -34,14 +32,14 @@ public class ThreadFileReaderIpAddress extends Thread {
         try (var raf = new RandomAccessFile(file, "r")) {
             if (startPos > 0) {
                 raf.seek(startPos);
-                // делаем "холостое" чтение, что бы переместить указатель на начало следующе строки
+                // делаем "холостое" чтение, что бы переместить startPos на начало следующе строки
                 raf.readLine();
             }
 
             // буфер
             byte[] buf = new byte[BUFFER_SIZE];
             // сколько байт из файла записано в буфер
-            int bytesRead;
+            int bytesRead = -1;
             // сколь всего байт прочитано из файла
             long sumBytesRead = 0;
             // индекс части ip адреса, который сейчас заполняем
@@ -52,9 +50,15 @@ public class ThreadFileReaderIpAddress extends Thread {
             int num;
             // если true, то ip адрес не верный, а значит пропускаем эту строку
             boolean invalidIp = false;
+            //
+            long currPos;
 
-            while ((sumBytesRead <= length) && ((bytesRead = raf.read(buf)) != -1)) {
-                sumBytesRead += bytesRead;
+            while (((currPos = raf.getFilePointer()) <= endPos) && ((bytesRead = raf.read(buf)) != -1)) {
+                // проверяем не достигли ли конечной позиции в обрабатываемой части фала,
+                // если да, то уменьшаем количество прочитанных байт в буфер, что бы не обрабатывать лишнее
+                if (bytesRead > (endPos - currPos)) {
+                    bytesRead = (int) (endPos - currPos);
+                }
                 for (int i = 0; i < bytesRead; i++) {
                     switch (buf[i]) {
                         case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
@@ -94,10 +98,10 @@ public class ThreadFileReaderIpAddress extends Thread {
                         default -> invalidIp = true;
                     }
                 }
-                if (!invalidIp & !expectedNumber & (indexIp == 3)) {
-                    if (addressCheck.uniqueIpAddress(ip)) {
-                        countUniqueIpAddress++;
-                    }
+            }
+            if ((bytesRead == -1) & !invalidIp & !expectedNumber & (indexIp == 3)) {
+                if (addressCheck.uniqueIpAddress(ip)) {
+                    countUniqueIpAddress++;
                 }
             }
         } catch (IOException e) {
