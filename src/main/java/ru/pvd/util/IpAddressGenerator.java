@@ -28,8 +28,12 @@ public class IpAddressGenerator {
     }
 
     public static void main(String[] args) {
+//        int count = 1_000_000_000;
+        int count = 1_000_000;
+        String file = "c:\\db\\ip_addresses_";
+
         long startTime = System.currentTimeMillis();
-        IpAddressGenerator.generate("c:\\db\\ip_addresses_", 1_000_000_000);
+        IpAddressGenerator.generate(file, count);
         System.out.println(System.currentTimeMillis() - startTime);
     }
 }

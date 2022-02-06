@@ -54,24 +54,28 @@ public class IpAddressCounterTest {
 
     private long getCountUniqueIpAddressByIpAddressCounter(String file) throws InterruptedException {
         int threadCount = Runtime.getRuntime().availableProcessors();
-        var ips = new IpAddressCounter();
-        ips.calc(file, threadCount);
-        return ips.getCountUniqueIpAddress();
+        return new IpAddressCounter().calc(file, threadCount);
     }
 
     @Test
     public void testCalcCountUniqueIpAddress() throws InterruptedException {
+//        String testFile = "ip_addresses_1_000_000";
         String testFile = "ip_addresses_10_000";
+
         final String file = Objects.requireNonNull(classLoader.getResource(testFile)).getFile();
 
         long countUniqueIpAddressByIpAddressCounter = getCountUniqueIpAddressByIpAddressCounter(file);
         long countUniqueIpAddressByHashMap = getCountUniqueIpAddressByHashMap(file);
         Assert.assertEquals(countUniqueIpAddressByHashMap, countUniqueIpAddressByIpAddressCounter);
+
+        // только для файла ip_addresses_1_000_000
+//        Assert.assertEquals(999882, countUniqueIpAddressByIpAddressCounter);
     }
 
     @Test
-    public void testCalcCountUniqueIpAddressWithInvalidIps() throws InterruptedException {
+    public void testCalcCountUniqueIpAddressWithInvalidIPs() throws InterruptedException {
         String testFile = "ip_addresses_1_000_err";
+
         final String file = Objects.requireNonNull(classLoader.getResource(testFile)).getFile();
 
         long countUniqueIpAddressByIpAddressCounter = getCountUniqueIpAddressByIpAddressCounter(file);
