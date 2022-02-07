@@ -40,8 +40,6 @@ public class ThreadFileReaderIpAddress extends Thread {
             byte[] buf = new byte[BUFFER_SIZE];
             // сколько байт из файла записано в буфер
             int bytesRead = -1;
-            // сколь всего байт прочитано из файла
-            long sumBytesRead = 0;
             // индекс части ip адреса, который сейчас заполняем
             byte indexIp = 0;
             // если true, то ожидаем, что следующее значение в буфере будет число 0..9
