@@ -1,6 +1,8 @@
 package ru.pvd.counter;
 
 import ru.pvd.common.BitSetExtPool;
+import ru.pvd.common.BitSetPool;
+import ru.pvd.common.LongBitSetPool;
 
 import java.io.*;
 
@@ -9,15 +11,13 @@ public class IpAddressCounter implements UniqueInetAddressCheck {
     // максимальное количество комбинаций IP адресов
     private static final long MAX_COUNT_IP_ADDRESS = 256 * 256 * 256 * 256L;
 
-    // количество блоков BitSet для хранения флага встречающихся IP адресов
-    private static final byte BITSET_POOL_SIZE = 24;
-
-    private final BitSetExtPool bitSetPool;
+    private final BitSetPool bitSetPool;
     private long countUniqueIpAddress = 0;
     private long spentTimeMillis = 0;
 
     public IpAddressCounter() {
-        bitSetPool = new BitSetExtPool(MAX_COUNT_IP_ADDRESS, BITSET_POOL_SIZE);
+//        bitSetPool = new BitSetExtPool(MAX_COUNT_IP_ADDRESS);
+        bitSetPool = new LongBitSetPool(MAX_COUNT_IP_ADDRESS);
     }
 
     public long calc(String file, Integer threadCount) throws InterruptedException {

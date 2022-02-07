@@ -1,16 +1,27 @@
 package ru.pvd.common;
 
-public class BitSetExtPool {
+public class BitSetExtPool implements BitSetPool {
 
-    static final byte MAX_POOL_SIZE = 24;
-    static final long MAX_BIT_COUNT = (long) MAX_POOL_SIZE * Integer.MAX_VALUE;
+    // количество блоков BitSet для хранения флага встречающихся IP адресов
+    private static final int POOL_SIZE = 128;
+    private static final int MAX_POOL_SIZE = 1024;
 
-    final int poolBitCount;
-    final BitSetExt[] poolBits;
+    static final long MAX_BIT_COUNT = (long) POOL_SIZE * Integer.MAX_VALUE;
 
-    public BitSetExtPool(long bitCount, byte poolSize) {
+    private int poolBitCount;
+    private BitSetExt[] poolBits;
+
+    public BitSetExtPool(long bitCount) {
+        init(bitCount, POOL_SIZE);
+    }
+
+    public BitSetExtPool(long bitCount, int poolSize) {
+        init(bitCount, poolSize);
+    }
+
+    private void init(long bitCount, int poolSize) {
         bitCount = Math.min(bitCount, MAX_BIT_COUNT);
-        poolSize = (byte) Math.min(poolSize, MAX_POOL_SIZE);
+        poolSize = Math.min(poolSize, MAX_POOL_SIZE);
 
         poolBits = new BitSetExt[poolSize];
         poolBitCount = (int) (bitCount / poolSize + 1);
@@ -26,10 +37,12 @@ public class BitSetExtPool {
         return poolBits[poolIndex].setIfNotEquals(poolBitIndex, value);
     }
 
-    public  boolean setBitTrueIfFalse(long bitIndex) {
+    @Override
+    public boolean setBitTrueIfFalse(long bitIndex) {
         return setBitIfNotEquals(bitIndex, true);
     }
 
+    @Override
     public void clear() {
         for (BitSetExt bit : poolBits) {
             bit.clear();

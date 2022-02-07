@@ -8,10 +8,10 @@ public class BitSetExtPoolTest {
     @Test
     public void setBitTrueIfFalse() {
         final long bitCount = 1_000_000;
-        final byte poolSizeMax = BitSetExtPool.MAX_POOL_SIZE;
+        final long poolSize = 100;
 
-        for (int poolSize = 1; poolSize < poolSizeMax; poolSize++) {
-            BitSetExtPool pool = new BitSetExtPool(bitCount, (byte) poolSize);
+        for (int j = 1; j < poolSize; j++) {
+            BitSetExtPool pool = new BitSetExtPool(bitCount, j);
             int countUnique = 0;
 
             for (int i = 0; i < 9; i++) {
